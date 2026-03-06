@@ -7,13 +7,14 @@ class JSONResourcePipelineService: ObservableObject {
     // MARK: - Resource Extraction
 
     func extractResources(from url: URL) async throws -> [String: Any] {
-        // Perform blocking file I/O on a background thread to avoid blocking the main actor.
         let data = try await Task.detached(priority: .userInitiated) {
             try Data(contentsOf: url)
         }.value
+
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw PipelineError.invalidFormat
         }
+
         return json
     }
 
@@ -24,25 +25,30 @@ class JSONResourcePipelineService: ObservableObject {
             extractedConversations = []
             return []
         }
+
         let parsed = threads.compactMap { dict -> ConversationThread? in
             guard let title = dict["title"] as? String else { return nil }
+
             let thread = ConversationThread(title: title)
+
             if let sourceFile = dict["sourceFile"] as? String {
                 thread.sourceFile = sourceFile
             }
+
             if let rawMessages = dict["messages"] as? [[String: Any]] {
                 thread.messages = rawMessages.compactMap { msg -> ChatMessage? in
                     guard
                         let content = msg["content"] as? String,
                         let role = msg["role"] as? String
                     else { return nil }
-                    let message = ChatMessage(content: content, role: role, thread: thread)
-                    return message
+
+                    return ChatMessage(content: content, role: role, thread: thread)
                 }
             }
+
             return thread
         }
-        // Replace (don't accumulate) so repeated calls don't duplicate state.
+
         extractedConversations = parsed
         return parsed
     }
@@ -53,6 +59,7 @@ class JSONResourcePipelineService: ObservableObject {
         guard let files = manifest["files"] as? [[String: Any]] else {
             return []
         }
+
         return files.compactMap { dict -> ManagedFile? in
             guard
                 let name = dict["name"] as? String,

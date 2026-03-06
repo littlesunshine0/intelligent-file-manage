@@ -7,8 +7,7 @@ class OfflineAssistantContextService: ObservableObject {
     var databaseService: DatabaseService
 
     /// In-memory cache of all conversations. `nil` means the cache is invalid and must be
-    /// re-populated from the database. An empty array is a valid (and cached) empty result,
-    /// so we never hit the DB again just because the history is empty.
+    /// re-populated from the database. An empty array is a valid cached result.
     private var cachedConversations: [ConversationThread]?
 
     init(databaseService: DatabaseService) {
@@ -18,7 +17,7 @@ class OfflineAssistantContextService: ObservableObject {
     // MARK: - Cache
 
     /// Clears the in-memory cache so the next search re-fetches from the database.
-    /// Call this after conversations are added or removed.
+    /// Call this after conversations are added, updated, or removed.
     func invalidateCache() {
         cachedConversations = nil
     }
@@ -26,10 +25,10 @@ class OfflineAssistantContextService: ObservableObject {
     // MARK: - Search
 
     func search(query: String) async -> [ConversationThread] {
-        // Populate cache on first call (or after invalidation).
         if cachedConversations == nil {
             cachedConversations = databaseService.fetchConversations()
         }
+
         let all = cachedConversations ?? []
 
         guard !query.isEmpty else {
@@ -42,10 +41,14 @@ class OfflineAssistantContextService: ObservableObject {
             thread.title.lowercased().contains(lowercased) ||
             thread.messages.contains { $0.content.lowercased().contains(lowercased) }
         }
+
         contextResults = filtered
         return filtered
     }
-
+  
+func refreshCache() {
+    cachedConversations = databaseService.fetchConversations()
+}
     // MARK: - Context Building
 
     func getRelevantContext(for query: String) async -> String {
@@ -53,6 +56,7 @@ class OfflineAssistantContextService: ObservableObject {
         guard !threads.isEmpty else {
             return "No relevant conversation history found for: \(query)"
         }
+
         var contextParts: [String] = ["Relevant conversation history:"]
         for thread in threads.prefix(3) {
             contextParts.append("Thread: \(thread.title)")
@@ -61,6 +65,7 @@ class OfflineAssistantContextService: ObservableObject {
                 contextParts.append("  \(roleLabel): \(message.content)")
             }
         }
+
         return contextParts.joined(separator: "\n")
     }
 }

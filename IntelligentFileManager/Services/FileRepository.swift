@@ -44,6 +44,7 @@ class DefaultFileRepository: FileRepository, ObservableObject {
 
         var scanned: [ManagedFile] = []
         let maxBytes = Int64(settingsService.maxFileSizeMB) * 1024 * 1024
+
         for fileURL in contents {
             let resources = try fileURL.resourceValues(forKeys: Set(resourceKeys))
             guard resources.isRegularFile == true else { continue }
@@ -62,6 +63,7 @@ class DefaultFileRepository: FileRepository, ObservableObject {
             )
             scanned.append(managed)
         }
+
         return scanned
     }
 
@@ -70,7 +72,9 @@ class DefaultFileRepository: FileRepository, ObservableObject {
         let destination = url.appendingPathComponent(file.name)
         try fileManager.moveItem(at: source, to: destination)
         file.path = destination.path
-        await MainActor.run { databaseService.save() }
+        await MainActor.run {
+            databaseService.save()
+        }
     }
 
     func deleteFile(_ file: ManagedFile) async throws {
@@ -78,20 +82,25 @@ class DefaultFileRepository: FileRepository, ObservableObject {
         if fileManager.fileExists(atPath: fileURL.path) {
             try fileManager.removeItem(at: fileURL)
         }
-        await MainActor.run { databaseService.delete(file) }
+        await MainActor.run {
+            databaseService.delete(file)
+        }
     }
 
     func duplicateDetection(files: [ManagedFile]) async -> [UUID: [ManagedFile]] {
         var checksumGroups: [String: [ManagedFile]] = [:]
+
         for file in files {
             let key = file.checksum ?? "\(file.name)-\(file.size)"
             checksumGroups[key, default: []].append(file)
         }
+
         var duplicates: [UUID: [ManagedFile]] = [:]
         for group in checksumGroups.values where group.count > 1 {
             let primary = group[0]
             duplicates[primary.id] = group
         }
+
         return duplicates
     }
 
@@ -100,10 +109,8 @@ class DefaultFileRepository: FileRepository, ObservableObject {
     func refreshFiles(from directory: URL) async {
         do {
             let scanned = try await scanDirectory(directory)
-            for file in scanned {
-                await MainActor.run { databaseService.insert(file) }
-            }
             await MainActor.run {
+                databaseService.insertMany(scanned)
                 self.files = databaseService.fetchFiles()
             }
         } catch {
