@@ -100,10 +100,8 @@ class DefaultFileRepository: FileRepository, ObservableObject {
     func refreshFiles(from directory: URL) async {
         do {
             let scanned = try await scanDirectory(directory)
-            for file in scanned {
-                await MainActor.run { databaseService.insert(file) }
-            }
             await MainActor.run {
+                databaseService.insertMany(scanned)
                 self.files = databaseService.fetchFiles()
             }
         } catch {
