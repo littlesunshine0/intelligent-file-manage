@@ -6,7 +6,7 @@ struct CodeIntelligenceView: View {
     @State private var isProjectPickerPresented = false
 
     init(appEnvironment: AppEnvironment) {
-        let orchestrator = CodeIntelligenceOrchestrator()
+        let orchestrator = appEnvironment.codeIntelligenceOrchestrator
         _viewModel = StateObject(wrappedValue: CodeIntelligenceViewModel(orchestrator: orchestrator))
     }
 

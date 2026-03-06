@@ -9,6 +9,7 @@ class AppEnvironment: ObservableObject {
     let mlOperationService: MLOperationService
     let jsonPipelineService: JSONResourcePipelineService
     let offlineAssistantService: OfflineAssistantContextService
+    let codeIntelligenceOrchestrator: CodeIntelligenceOrchestrator
 
     init(modelContainer: ModelContainer) {
         let settings = SettingsService()
@@ -17,6 +18,7 @@ class AppEnvironment: ObservableObject {
         let repo = DefaultFileRepository(databaseService: db, settingsService: settings)
         let ml = MLOperationService(databaseService: db, jsonPipelineService: jsonPipeline)
         let offline = OfflineAssistantContextService(databaseService: db)
+        let codeIntelligence = CodeIntelligenceOrchestrator()
 
         self.settingsService = settings
         self.databaseService = db
@@ -24,5 +26,6 @@ class AppEnvironment: ObservableObject {
         self.fileRepository = repo
         self.mlOperationService = ml
         self.offlineAssistantService = offline
+        self.codeIntelligenceOrchestrator = codeIntelligence
     }
 }

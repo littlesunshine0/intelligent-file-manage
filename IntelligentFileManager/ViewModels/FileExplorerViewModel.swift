@@ -38,6 +38,10 @@ class FileExplorerViewModel: ObservableObject {
 
     // MARK: - Actions
 
+    func loadFromDatabase() {
+        files = databaseService.fetchFiles()
+    }
+
     func loadFiles(from directory: URL) async {
         isLoading = true
         defer { isLoading = false }

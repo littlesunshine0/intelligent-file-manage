@@ -11,15 +11,21 @@ class IngestionViewModel: ObservableObject {
     var fileRepository: DefaultFileRepository
     var jsonPipelineService: JSONResourcePipelineService
     var databaseService: DatabaseService
+    var settingsService: SettingsService
+    var mlOperationService: MLOperationService
 
     init(
         fileRepository: DefaultFileRepository,
         jsonPipelineService: JSONResourcePipelineService,
-        databaseService: DatabaseService
+        databaseService: DatabaseService,
+        settingsService: SettingsService,
+        mlOperationService: MLOperationService
     ) {
         self.fileRepository = fileRepository
         self.jsonPipelineService = jsonPipelineService
         self.databaseService = databaseService
+        self.settingsService = settingsService
+        self.mlOperationService = mlOperationService
     }
 
     // MARK: - Directory Ingestion
@@ -41,6 +47,17 @@ class IngestionViewModel: ObservableObject {
             }
             ingestedFiles = databaseService.fetchFiles()
             AppLogger.info("Ingested \(files.count) files from \(url.lastPathComponent)", category: "Ingestion")
+
+            // Auto-classify files when the setting is enabled.
+            if settingsService.autoClassifyEnabled && !files.isEmpty {
+                AppLogger.info("Auto-classify enabled; classifying \(files.count) files", category: "Ingestion")
+                do {
+                    try await mlOperationService.processFiles(files)
+                } catch {
+                    AppLogger.warning("Auto-classify after directory ingestion failed: \(error.localizedDescription)", category: "Ingestion")
+                }
+                ingestedFiles = databaseService.fetchFiles()
+            }
         } catch {
             errorMessage = error.localizedDescription
             AppLogger.error("ingestDirectory failed: \(error.localizedDescription)", category: "Ingestion")
@@ -54,12 +71,33 @@ class IngestionViewModel: ObservableObject {
         defer { isIngesting = false }
         do {
             let json = try await jsonPipelineService.extractResources(from: url)
+
+            // Persist conversation threads found in the JSON manifest.
+            let conversations = jsonPipelineService.parseConversationData(from: json)
+            for conversation in conversations {
+                databaseService.insert(conversation)
+            }
+            if !conversations.isEmpty {
+                AppLogger.info("Ingested \(conversations.count) conversation(s) from JSON", category: "Ingestion")
+            }
+
+            // Persist file records from the manifest.
             let files = try await jsonPipelineService.processIngestionManifest(json)
             for file in files {
                 databaseService.insert(file)
             }
             ingestedFiles = databaseService.fetchFiles()
             AppLogger.info("Ingested \(files.count) files from JSON manifest", category: "Ingestion")
+
+            // Auto-classify files when the setting is enabled.
+            if settingsService.autoClassifyEnabled && !files.isEmpty {
+                do {
+                    try await mlOperationService.processFiles(files)
+                } catch {
+                    AppLogger.warning("Auto-classify after JSON ingestion failed: \(error.localizedDescription)", category: "Ingestion")
+                }
+                ingestedFiles = databaseService.fetchFiles()
+            }
         } catch {
             errorMessage = error.localizedDescription
             AppLogger.error("ingestJSONFile failed: \(error.localizedDescription)", category: "Ingestion")

@@ -63,6 +63,10 @@ struct FileExplorerView: View {
                 Task { await viewModel.loadFiles(from: url) }
             }
         }
+        .task {
+            // Load any previously persisted files when the view first appears.
+            viewModel.loadFromDatabase()
+        }
         .alert("Error", isPresented: .init(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }

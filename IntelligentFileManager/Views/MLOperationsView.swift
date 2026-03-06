@@ -27,18 +27,17 @@ struct MLOperationsView: View {
 
             if !viewModel.classificationResults.isEmpty {
                 Section("Classification Results (\(viewModel.classificationResults.count))") {
-                    ForEach(Array(viewModel.classificationResults.keys), id: \.self) { fileId in
-                        if let label = viewModel.classificationResults[fileId] {
-                            HStack {
-                                Image(systemName: "tag")
-                                    .foregroundStyle(.purple)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(fileId.uuidString.prefix(8) + "…")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                    Text(label)
-                                        .font(.body)
-                                }
+                    ForEach(viewModel.classificationResults) { result in
+                        HStack {
+                            Image(systemName: "tag")
+                                .foregroundStyle(.purple)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(result.fileName)
+                                    .font(.body)
+                                    .lineLimit(1)
+                                Text(result.label)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                     }

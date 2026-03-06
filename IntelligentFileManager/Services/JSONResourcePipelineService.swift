@@ -1,12 +1,16 @@
 import Foundation
 
+@MainActor
 class JSONResourcePipelineService: ObservableObject {
     @Published var extractedConversations: [ConversationThread] = []
 
     // MARK: - Resource Extraction
 
     func extractResources(from url: URL) async throws -> [String: Any] {
-        let data = try Data(contentsOf: url)
+        // Perform blocking file I/O on a background thread to avoid blocking the main actor.
+        let data = try await Task.detached(priority: .userInitiated) {
+            try Data(contentsOf: url)
+        }.value
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw PipelineError.invalidFormat
         }
@@ -35,6 +39,7 @@ class JSONResourcePipelineService: ObservableObject {
                     return message
                 }
             }
+            extractedConversations.append(thread)
             return thread
         }
     }

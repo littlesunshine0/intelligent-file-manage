@@ -10,7 +10,9 @@ struct IngestionView: View {
         _viewModel = StateObject(wrappedValue: IngestionViewModel(
             fileRepository: appEnvironment.fileRepository,
             jsonPipelineService: appEnvironment.jsonPipelineService,
-            databaseService: appEnvironment.databaseService
+            databaseService: appEnvironment.databaseService,
+            settingsService: appEnvironment.settingsService,
+            mlOperationService: appEnvironment.mlOperationService
         ))
     }
 

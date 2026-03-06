@@ -1,10 +1,17 @@
 import Foundation
 
+// Carries enough information to display a single classification result in the UI.
+struct ClassificationResult: Identifiable {
+    let id: UUID
+    let fileName: String
+    let label: String
+}
+
 @MainActor
 class MLOperationsViewModel: ObservableObject {
     @Published var operations: [ActionStep] = []
     @Published var isProcessing: Bool = false
-    @Published var classificationResults: [UUID: String] = [:]
+    @Published var classificationResults: [ClassificationResult] = []
     @Published var errorMessage: String? = nil
 
     var mlOperationService: MLOperationService
@@ -23,7 +30,7 @@ class MLOperationsViewModel: ObservableObject {
         do {
             for file in files {
                 let label = try await mlOperationService.classifyFile(file)
-                classificationResults[file.id] = label
+                classificationResults.append(ClassificationResult(id: file.id, fileName: file.name, label: label))
             }
             operations = databaseService.fetchActionSteps()
         } catch {
@@ -41,7 +48,7 @@ class MLOperationsViewModel: ObservableObject {
     // MARK: - Clear
 
     func clearResults() {
-        classificationResults = [:]
+        classificationResults = []
         errorMessage = nil
     }
 }
