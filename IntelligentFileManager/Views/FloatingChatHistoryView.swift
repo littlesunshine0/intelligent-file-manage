@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct FloatingChatHistoryView: View {
     @EnvironmentObject var appEnvironment: AppEnvironment
@@ -6,6 +7,7 @@ struct FloatingChatHistoryView: View {
     @State private var searchQuery = ""
     @State private var conversations: [ConversationThread] = []
     @State private var selectedThread: ConversationThread? = nil
+    @State private var searchTask: Task<Void, Never>? = nil
 
     var body: some View {
         VStack {
@@ -53,7 +55,10 @@ struct FloatingChatHistoryView: View {
                     .foregroundStyle(.secondary)
                 TextField("Search conversations", text: $searchQuery)
                     .onChange(of: searchQuery) { _, query in
-                        Task {
+                        searchTask?.cancel()
+                        searchTask = Task {
+                            try? await Task.sleep(for: .milliseconds(300))
+                            guard !Task.isCancelled else { return }
                             conversations = await appEnvironment.offlineAssistantService.search(query: query)
                         }
                     }

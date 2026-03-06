@@ -16,8 +16,11 @@ class SettingsService: ObservableObject {
 
     @Published var defaultDirectory: URL {
         didSet {
-            if let bookmark = try? defaultDirectory.bookmarkData() {
+            do {
+                let bookmark = try defaultDirectory.bookmarkData()
                 UserDefaults.standard.set(bookmark, forKey: Keys.defaultDirectoryBookmark)
+            } catch {
+                AppLogger.warning("Failed to persist default directory bookmark: \(error.localizedDescription)", category: "Settings")
             }
         }
     }

@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 class OfflineAssistantContextService: ObservableObject {
     @Published var contextResults: [ConversationThread] = []
 
@@ -13,17 +14,17 @@ class OfflineAssistantContextService: ObservableObject {
 
     func search(query: String) async -> [ConversationThread] {
         guard !query.isEmpty else {
-            let all = await MainActor.run { databaseService.fetchConversations() }
-            await MainActor.run { contextResults = all }
+            let all = databaseService.fetchConversations()
+            contextResults = all
             return all
         }
         let lowercased = query.lowercased()
-        let all = await MainActor.run { databaseService.fetchConversations() }
+        let all = databaseService.fetchConversations()
         let filtered = all.filter { thread in
             thread.title.lowercased().contains(lowercased) ||
             thread.messages.contains { $0.content.lowercased().contains(lowercased) }
         }
-        await MainActor.run { contextResults = filtered }
+        contextResults = filtered
         return filtered
     }
 

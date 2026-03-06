@@ -43,11 +43,11 @@ class DefaultFileRepository: FileRepository, ObservableObject {
         )
 
         var scanned: [ManagedFile] = []
+        let maxBytes = Int64(settingsService.maxFileSizeMB) * 1024 * 1024
         for fileURL in contents {
             let resources = try fileURL.resourceValues(forKeys: Set(resourceKeys))
             guard resources.isRegularFile == true else { continue }
 
-            let maxBytes = Int64(settingsService.maxFileSizeMB) * 1024 * 1024
             let fileSize = Int64(resources.fileSize ?? 0)
             guard fileSize <= maxBytes else { continue }
 

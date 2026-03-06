@@ -44,6 +44,8 @@ class CodeIntelligenceOrchestrator: ObservableObject {
 
     // MARK: - Metrics
 
+    private static let complexityKeywords = ["if ", "else ", "for ", "while ", "guard ", "switch ", "catch "]
+
     private func calculateMetrics(for files: [URL]) async -> CodeMetrics {
         var totalLOC = 0
         var totalComplexity = 0.0
@@ -53,8 +55,7 @@ class CodeIntelligenceOrchestrator: ObservableObject {
                 let lines = content.components(separatedBy: .newlines)
                 totalLOC += lines.filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.count
                 // Rough cyclomatic complexity estimate
-                let keywords = ["if ", "else ", "for ", "while ", "guard ", "switch ", "catch "]
-                for keyword in keywords {
+                for keyword in Self.complexityKeywords {
                     totalComplexity += Double(content.components(separatedBy: keyword).count - 1)
                 }
             }

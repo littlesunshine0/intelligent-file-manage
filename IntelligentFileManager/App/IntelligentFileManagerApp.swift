@@ -7,11 +7,14 @@ struct IntelligentFileManagerApp: App {
     @StateObject private var appEnvironment: AppEnvironment
 
     init() {
-        let container = (try? ModelContainerProvider.shared()) ?? {
-            fatalError("Failed to create ModelContainer.")
-        }()
-        modelContainer = container
-        _appEnvironment = StateObject(wrappedValue: AppEnvironment(modelContainer: container))
+        do {
+            let container = try ModelContainerProvider.shared()
+            modelContainer = container
+            _appEnvironment = StateObject(wrappedValue: AppEnvironment(modelContainer: container))
+        } catch {
+            AppLogger.error("Failed to create ModelContainer: \(error.localizedDescription)", category: "App")
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
     }
 
     var body: some Scene {

@@ -17,9 +17,6 @@ struct SettingsView: View {
             // MARK: - Security
             Section("Security") {
                 Toggle("Enable Encryption", isOn: $viewModel.encryptionEnabled)
-                    .onChange(of: viewModel.encryptionEnabled) { _, _ in
-                        viewModel.applyEncryptionSettings()
-                    }
             }
 
             // MARK: - File Management

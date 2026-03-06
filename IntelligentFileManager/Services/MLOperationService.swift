@@ -30,9 +30,11 @@ class MLOperationService: ObservableObject {
         databaseService.insert(step)
 
         do {
-            // Heuristic classification based on file extension
+            // Heuristic classification based on file extension.
+            // Confidence reflects whether the extension has a known explicit mapping (0.92)
+            // or falls back to "Other" (0.60).
             let label = inferLabel(for: file.fileExtension)
-            let confidence = 0.75 + Double.random(in: 0..<0.25)
+            let confidence = label == "Other" ? 0.60 : 0.92
 
             file.classificationLabel = label
             file.classificationConfidence = confidence

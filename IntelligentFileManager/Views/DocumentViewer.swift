@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct DocumentViewer: View {
     @Binding var file: ManagedFile?
+    @Environment(\.modelContext) private var modelContext
     @State private var isEditingTags = false
     @State private var newTag = ""
 
@@ -95,6 +97,7 @@ struct DocumentViewer: View {
                                 ForEach(file.tags, id: \.self) { tag in
                                     TagChip(tag: tag) {
                                         file.tags.removeAll { $0 == tag }
+                                        try? modelContext.save()
                                     }
                                 }
                             }
@@ -108,6 +111,7 @@ struct DocumentViewer: View {
                                     let trimmed = newTag.trimmingCharacters(in: .whitespacesAndNewlines)
                                     if !trimmed.isEmpty && !file.tags.contains(trimmed) {
                                         file.tags.append(trimmed)
+                                        try? modelContext.save()
                                         newTag = ""
                                     }
                                 }

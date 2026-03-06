@@ -24,22 +24,18 @@ class SettingsViewModel: ObservableObject {
 
         // Observe settingsService changes and sync to local published properties
         settingsService.$encryptionEnabled
-            .receive(on: RunLoop.main)
             .sink { [weak self] value in self?.encryptionEnabled = value }
             .store(in: &cancellables)
 
         settingsService.$defaultDirectory
-            .receive(on: RunLoop.main)
             .sink { [weak self] url in self?.defaultDirectoryPath = url.path }
             .store(in: &cancellables)
 
         settingsService.$autoClassifyEnabled
-            .receive(on: RunLoop.main)
             .sink { [weak self] value in self?.autoClassifyEnabled = value }
             .store(in: &cancellables)
 
         settingsService.$maxFileSizeMB
-            .receive(on: RunLoop.main)
             .sink { [weak self] value in self?.maxFileSizeMB = value }
             .store(in: &cancellables)
     }
