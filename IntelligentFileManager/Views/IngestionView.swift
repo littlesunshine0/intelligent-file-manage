@@ -12,7 +12,8 @@ struct IngestionView: View {
             jsonPipelineService: appEnvironment.jsonPipelineService,
             databaseService: appEnvironment.databaseService,
             settingsService: appEnvironment.settingsService,
-            mlOperationService: appEnvironment.mlOperationService
+            mlOperationService: appEnvironment.mlOperationService,
+            offlineAssistantService: appEnvironment.offlineAssistantService
         ))
     }
 

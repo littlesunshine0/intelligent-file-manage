@@ -6,20 +6,38 @@ class OfflineAssistantContextService: ObservableObject {
 
     var databaseService: DatabaseService
 
+    /// In-memory cache of all conversations. `nil` means the cache is invalid and must be
+    /// re-populated from the database. An empty array is a valid (and cached) empty result,
+    /// so we never hit the DB again just because the history is empty.
+    private var cachedConversations: [ConversationThread]?
+
     init(databaseService: DatabaseService) {
         self.databaseService = databaseService
+    }
+
+    // MARK: - Cache
+
+    /// Clears the in-memory cache so the next search re-fetches from the database.
+    /// Call this after conversations are added or removed.
+    func invalidateCache() {
+        cachedConversations = nil
     }
 
     // MARK: - Search
 
     func search(query: String) async -> [ConversationThread] {
+        // Populate cache on first call (or after invalidation).
+        if cachedConversations == nil {
+            cachedConversations = databaseService.fetchConversations()
+        }
+        let all = cachedConversations ?? []
+
         guard !query.isEmpty else {
-            let all = databaseService.fetchConversations()
             contextResults = all
             return all
         }
+
         let lowercased = query.lowercased()
-        let all = databaseService.fetchConversations()
         let filtered = all.filter { thread in
             thread.title.lowercased().contains(lowercased) ||
             thread.messages.contains { $0.content.lowercased().contains(lowercased) }

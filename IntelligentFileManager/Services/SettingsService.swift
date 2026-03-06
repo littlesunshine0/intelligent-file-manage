@@ -17,7 +17,11 @@ class SettingsService: ObservableObject {
     @Published var defaultDirectory: URL {
         didSet {
             do {
-                let bookmark = try defaultDirectory.bookmarkData()
+                let bookmark = try defaultDirectory.bookmarkData(
+                    options: .withSecurityScope,
+                    includingResourceValuesForKeys: nil,
+                    relativeTo: nil
+                )
                 UserDefaults.standard.set(bookmark, forKey: Keys.defaultDirectoryBookmark)
             } catch {
                 AppLogger.warning("Failed to persist default directory bookmark: \(error.localizedDescription)", category: "Settings")
@@ -47,14 +51,33 @@ class SettingsService: ObservableObject {
             ? 500
             : defaults.integer(forKey: Keys.maxFileSizeMB)
 
-        if let bookmarkData = defaults.data(forKey: Keys.defaultDirectoryBookmark),
-           let resolved = try? URL(
-               resolvingBookmarkData: bookmarkData,
-               options: .withoutUI,
-               relativeTo: nil,
-               bookmarkDataIsStale: nil
-           ) {
-            self.defaultDirectory = resolved
+        if let bookmarkData = defaults.data(forKey: Keys.defaultDirectoryBookmark) {
+            var isStale = false
+            if let resolved = try? URL(
+                resolvingBookmarkData: bookmarkData,
+                options: .withSecurityScope,
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            ) {
+                self.defaultDirectory = resolved
+                if isStale {
+                    // Re-create the bookmark now that we have a valid URL again.
+                    if let refreshed = try? resolved.bookmarkData(
+                        options: .withSecurityScope,
+                        includingResourceValuesForKeys: nil,
+                        relativeTo: nil
+                    ) {
+                        defaults.set(refreshed, forKey: Keys.defaultDirectoryBookmark)
+                    }
+                    AppLogger.warning("Default directory bookmark was stale; refreshed.", category: "Settings")
+                }
+            } else {
+                self.defaultDirectory = FileManager.default.urls(
+                    for: .documentDirectory,
+                    in: .userDomainMask
+                ).first ?? URL(fileURLWithPath: NSHomeDirectory())
+                AppLogger.warning("Could not resolve default directory bookmark; falling back to Documents.", category: "Settings")
+            }
         } else {
             self.defaultDirectory = FileManager.default.urls(
                 for: .documentDirectory,

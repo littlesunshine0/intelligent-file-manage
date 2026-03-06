@@ -7,8 +7,7 @@ struct SettingsView: View {
 
     init(appEnvironment: AppEnvironment) {
         _viewModel = StateObject(wrappedValue: SettingsViewModel(
-            settingsService: appEnvironment.settingsService,
-            fileRepository: appEnvironment.fileRepository
+            settingsService: appEnvironment.settingsService
         ))
     }
 
