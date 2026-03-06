@@ -44,16 +44,18 @@ class FileExplorerViewModel: ObservableObject {
 
     func loadFiles(from directory: URL) async {
         isLoading = true
+        errorMessage = nil
         defer { isLoading = false }
+
         do {
             let scanned = try await fileRepository.scanDirectory(directory)
             databaseService.insertMany(scanned)
             files = databaseService.fetchFiles()
-            AppLogger.info("Loaded \(files.count) files from \(directory.lastPathComponent)", category: "FileExplorer")
+            AppLogger.info(
+                "Loaded \(files.count) files from \(directory.lastPathComponent)",
+                category: "FileExplorer"
+            )
         } catch {
-            errorMessage = error.localizedDescription
-            AppLogger.error("loadFiles failed: \(error.localizedDescription)", category: "FileExplorer")
-        }
             errorMessage = error.localizedDescription
             AppLogger.error("loadFiles failed: \(error.localizedDescription)", category: "FileExplorer")
         }

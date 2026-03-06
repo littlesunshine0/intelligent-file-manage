@@ -7,13 +7,16 @@ struct IngestionView: View {
     @State private var isJSONPickerPresented = false
 
     init(appEnvironment: AppEnvironment) {
-        _viewModel = StateObject(wrappedValue: IngestionViewModel(
-            fileRepository: appEnvironment.fileRepository,
-            jsonPipelineService: appEnvironment.jsonPipelineService,
-            databaseService: appEnvironment.databaseService,
-            settingsService: appEnvironment.settingsService,
-            mlOperationService: appEnvironment.mlOperationService
-        ))
+        _viewModel = StateObject(
+            wrappedValue: IngestionViewModel(
+                fileRepository: appEnvironment.fileRepository,
+                jsonPipelineService: appEnvironment.jsonPipelineService,
+                databaseService: appEnvironment.databaseService,
+                settingsService: appEnvironment.settingsService,
+                mlOperationService: appEnvironment.mlOperationService,
+                offlineAssistantService: appEnvironment.offlineAssistantService
+            )
+        )
     }
 
     var body: some View {
@@ -53,11 +56,19 @@ struct IngestionView: View {
                         HStack {
                             Image(systemName: "doc")
                                 .foregroundStyle(.blue)
+
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(file.name).font(.body)
-                                Text(ByteCountFormatter.string(fromByteCount: file.size, countStyle: .file))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                Text(file.name)
+                                    .font(.body)
+
+                                Text(
+                                    ByteCountFormatter.string(
+                                        fromByteCount: file.size,
+                                        countStyle: .file
+                                    )
+                                )
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -70,7 +81,9 @@ struct IngestionView: View {
             allowedContentTypes: [.folder]
         ) { result in
             if case .success(let url) = result {
-                Task { await viewModel.ingestDirectory(url) }
+                Task {
+                    await viewModel.ingestDirectory(url)
+                }
             }
         }
         .fileImporter(
@@ -78,14 +91,21 @@ struct IngestionView: View {
             allowedContentTypes: [.json]
         ) { result in
             if case .success(let url) = result {
-                Task { await viewModel.ingestJSONFile(url) }
+                Task {
+                    await viewModel.ingestJSONFile(url)
+                }
             }
         }
-        .alert("Error", isPresented: .init(
-            get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
-        )) {
-            Button("OK", role: .cancel) { viewModel.errorMessage = nil }
+        .alert(
+            "Error",
+            isPresented: .init(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                viewModel.errorMessage = nil
+            }
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
@@ -94,6 +114,7 @@ struct IngestionView: View {
 
 #Preview {
     let env = AppEnvironment(modelContainer: try! ModelContainerProvider.preview())
+
     NavigationStack {
         IngestionView(appEnvironment: env)
             .environmentObject(env)

@@ -58,12 +58,11 @@ class DatabaseService: ObservableObject {
 
     func fetchFiles(matching query: String) -> [ManagedFile] {
         let lowercased = query.lowercased()
-        let predicate = #Predicate<ManagedFile> { file in
-            file.name.localizedStandardContains(lowercased) ||
-            file.path.localizedStandardContains(lowercased)
-        }
         let descriptor = FetchDescriptor<ManagedFile>(
-            predicate: predicate,
+            predicate: #Predicate<ManagedFile> { file in
+                file.name.localizedStandardContains(lowercased) ||
+                file.path.localizedStandardContains(lowercased)
+            },
             sortBy: [SortDescriptor(\.modifiedAt, order: .reverse)]
         )
         do {
