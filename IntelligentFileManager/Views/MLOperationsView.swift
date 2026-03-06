@@ -3,7 +3,6 @@ import SwiftUI
 struct MLOperationsView: View {
     @EnvironmentObject var appEnvironment: AppEnvironment
     @StateObject private var viewModel: MLOperationsViewModel
-    @State private var filesToProcess: [ManagedFile] = []
 
     init(appEnvironment: AppEnvironment) {
         _viewModel = StateObject(wrappedValue: MLOperationsViewModel(
