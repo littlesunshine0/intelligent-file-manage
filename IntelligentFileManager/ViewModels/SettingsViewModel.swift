@@ -9,13 +9,11 @@ class SettingsViewModel: ObservableObject {
     @Published var maxFileSizeMB: Int
 
     var settingsService: SettingsService
-    var fileRepository: DefaultFileRepository
 
     private var cancellables = Set<AnyCancellable>()
 
-    init(settingsService: SettingsService, fileRepository: DefaultFileRepository) {
+    init(settingsService: SettingsService) {
         self.settingsService = settingsService
-        self.fileRepository = fileRepository
 
         self.encryptionEnabled = settingsService.encryptionEnabled
         self.defaultDirectoryPath = settingsService.defaultDirectory.path

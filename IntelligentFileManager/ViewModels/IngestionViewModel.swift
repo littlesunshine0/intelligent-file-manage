@@ -40,11 +40,8 @@ class IngestionViewModel: ObservableObject {
         do {
             selectedDirectory = url
             let files = try await fileRepository.scanDirectory(url)
-            let total = Double(files.count)
-            for (index, file) in files.enumerated() {
-                databaseService.insert(file)
-                progress = total > 0 ? Double(index + 1) / total : 1.0
-            }
+            databaseService.insertMany(files)
+            progress = 1.0
             ingestedFiles = databaseService.fetchFiles()
             AppLogger.info("Ingested \(files.count) files from \(url.lastPathComponent)", category: "Ingestion")
 
@@ -74,18 +71,14 @@ class IngestionViewModel: ObservableObject {
 
             // Persist conversation threads found in the JSON manifest.
             let conversations = jsonPipelineService.parseConversationData(from: json)
-            for conversation in conversations {
-                databaseService.insert(conversation)
-            }
+            databaseService.insertMany(conversations)
             if !conversations.isEmpty {
                 AppLogger.info("Ingested \(conversations.count) conversation(s) from JSON", category: "Ingestion")
             }
 
             // Persist file records from the manifest.
             let files = try await jsonPipelineService.processIngestionManifest(json)
-            for file in files {
-                databaseService.insert(file)
-            }
+            databaseService.insertMany(files)
             ingestedFiles = databaseService.fetchFiles()
             AppLogger.info("Ingested \(files.count) files from JSON manifest", category: "Ingestion")
 

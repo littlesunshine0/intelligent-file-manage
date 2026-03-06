@@ -6,21 +6,34 @@ class OfflineAssistantContextService: ObservableObject {
 
     var databaseService: DatabaseService
 
+    /// In-memory cache of all conversations, loaded once and reused for filtering.
+    private var cachedConversations: [ConversationThread] = []
+
     init(databaseService: DatabaseService) {
         self.databaseService = databaseService
+    }
+
+    // MARK: - Cache Management
+
+    /// Refreshes the in-memory conversation cache from the database.
+    func refreshCache() {
+        cachedConversations = databaseService.fetchConversations()
     }
 
     // MARK: - Search
 
     func search(query: String) async -> [ConversationThread] {
+        // Populate the cache on first use (or if empty).
+        if cachedConversations.isEmpty {
+            cachedConversations = databaseService.fetchConversations()
+        }
+
         guard !query.isEmpty else {
-            let all = databaseService.fetchConversations()
-            contextResults = all
-            return all
+            contextResults = cachedConversations
+            return cachedConversations
         }
         let lowercased = query.lowercased()
-        let all = databaseService.fetchConversations()
-        let filtered = all.filter { thread in
+        let filtered = cachedConversations.filter { thread in
             thread.title.lowercased().contains(lowercased) ||
             thread.messages.contains { $0.content.lowercased().contains(lowercased) }
         }

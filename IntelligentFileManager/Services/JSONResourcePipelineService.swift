@@ -23,7 +23,7 @@ class JSONResourcePipelineService: ObservableObject {
         guard let threads = json["conversations"] as? [[String: Any]] else {
             return []
         }
-        return threads.compactMap { dict -> ConversationThread? in
+        let parsed = threads.compactMap { dict -> ConversationThread? in
             guard let title = dict["title"] as? String else { return nil }
             let thread = ConversationThread(title: title)
             if let sourceFile = dict["sourceFile"] as? String {
@@ -39,9 +39,10 @@ class JSONResourcePipelineService: ObservableObject {
                     return message
                 }
             }
-            extractedConversations.append(thread)
             return thread
         }
+        extractedConversations = parsed
+        return parsed
     }
 
     // MARK: - Ingestion Manifest

@@ -21,9 +21,20 @@ class DatabaseService: ObservableObject {
         }
     }
 
-    func insert<T: PersistentModel>(_ model: T) {
+    func insert<T: PersistentModel>(_ model: T, saveImmediately: Bool = true) {
         modelContext.insert(model)
-        save()
+        if saveImmediately {
+            save()
+        }
+    }
+
+    func insertMany<T: PersistentModel>(_ models: [T], saveImmediately: Bool = true) {
+        for model in models {
+            modelContext.insert(model)
+        }
+        if saveImmediately {
+            save()
+        }
     }
 
     func delete<T: PersistentModel>(_ model: T) {
