@@ -91,8 +91,9 @@ struct IngestionView: View {
 }
 
 #Preview {
+    let env = AppEnvironment(modelContainer: try! ModelContainerProvider.preview())
     NavigationStack {
-        IngestionView(appEnvironment: AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
-            .environmentObject(AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
+        IngestionView(appEnvironment: env)
+            .environmentObject(env)
     }
 }

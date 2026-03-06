@@ -109,8 +109,9 @@ private struct ReportSummaryRow: View {
 }
 
 #Preview {
+    let env = AppEnvironment(modelContainer: try! ModelContainerProvider.preview())
     NavigationStack {
-        CodeIntelligenceView(appEnvironment: AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
-            .environmentObject(AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
+        CodeIntelligenceView(appEnvironment: env)
+            .environmentObject(env)
     }
 }

@@ -71,8 +71,9 @@ struct SettingsView: View {
 }
 
 #Preview {
+    let env = AppEnvironment(modelContainer: try! ModelContainerProvider.preview())
     NavigationStack {
-        SettingsView(appEnvironment: AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
-            .environmentObject(AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
+        SettingsView(appEnvironment: env)
+            .environmentObject(env)
     }
 }

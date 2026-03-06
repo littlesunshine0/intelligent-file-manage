@@ -121,8 +121,9 @@ private struct StatusBadge: View {
 }
 
 #Preview {
+    let env = AppEnvironment(modelContainer: try! ModelContainerProvider.preview())
     NavigationStack {
-        ManifestFeatureView(appEnvironment: AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
-            .environmentObject(AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
+        ManifestFeatureView(appEnvironment: env)
+            .environmentObject(env)
     }
 }

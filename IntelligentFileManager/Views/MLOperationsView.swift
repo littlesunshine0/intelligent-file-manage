@@ -131,8 +131,9 @@ private struct OperationRowView: View {
 }
 
 #Preview {
+    let env = AppEnvironment(modelContainer: try! ModelContainerProvider.preview())
     NavigationStack {
-        MLOperationsView(appEnvironment: AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
-            .environmentObject(AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
+        MLOperationsView(appEnvironment: env)
+            .environmentObject(env)
     }
 }

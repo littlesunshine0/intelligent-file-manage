@@ -140,8 +140,9 @@ private struct FileRowView: View {
 }
 
 #Preview {
+    let env = AppEnvironment(modelContainer: try! ModelContainerProvider.preview())
     NavigationStack {
-        FileExplorerView(appEnvironment: AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
-            .environmentObject(AppEnvironment(modelContainer: try! ModelContainerProvider.preview()))
+        FileExplorerView(appEnvironment: env)
+            .environmentObject(env)
     }
 }
